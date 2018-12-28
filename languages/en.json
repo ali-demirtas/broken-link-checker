@@ -1,0 +1,8 @@
+{
+    "plugin-data":
+    {
+        "name": "Broken Link Checker",
+        "description": "Scan your website and fix broken links"
+    },
+    "ignored-domains": "Ignored Domains (Separated by new lines)"
+}
