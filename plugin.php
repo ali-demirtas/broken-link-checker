@@ -45,8 +45,7 @@ class PluginBrokenLinksChecker extends Plugin
         $this->links = json_decode($json, true);
 
         $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links</button>
-        <div id="resultsPlaceholder"></div>
-        ';
+        <div id="resultsPlaceholder"></div>';
 
         $html .= '
         <table class="table table-bordered table-sm table-hover" id="allLinksTable">
@@ -58,9 +57,9 @@ class PluginBrokenLinksChecker extends Plugin
             </thead>
 
             <tbody>';
-        foreach ($this->links as $link) {
+        foreach ($this->links as $key => $link) {
             $html .='
-                    <tr>
+                    <tr id="link-'.$key.'">
                         <td><span class="status"><span class="oi oi-arrow-circle-right text-info"></span></span></td>
                         <td><a class="btn btn-outline-secondary btn-sm mb-1" href="'.HTML_PATH_ADMIN_ROOT.'edit-content/'.$link['src'].'" target="_blank"><span class="oi oi-pencil"></span></a></td>
                         <td></td>
@@ -168,14 +167,20 @@ class PluginBrokenLinksChecker extends Plugin
             }
 
             $query = isset($_GET['q']) ? $_GET['q'] : '';
+            $trId = isset($_GET['trId']) && is_string($_GET['trId']) ? $_GET['trId'] : '';
             if ($query && (Valid::url($query))) {
                 $response = [
                     'query' => $query,
+                    'trId' => $trId,
                     'result' => Client::getHeaders($query)
                 ];
                 $this->sendResponse($response);
             } else {
-                $this->sendResponse(['error' => 'Invalid query'], 400);
+                $this->sendResponse([
+                    'query' => $query,
+                    'trId' => $trId,
+                    'error' => 'Invalid query'
+                ], 400);
             }
         }
     }
