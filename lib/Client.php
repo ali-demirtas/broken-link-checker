@@ -57,7 +57,7 @@ class Client
         ];
     }
 
-    protected function isUp($httpcode) : bool
+    protected static function isUp($httpcode) : bool
     {
         $successCodes = [200];
         return (in_array($httpcode, $successCodes)) ? true : false;
