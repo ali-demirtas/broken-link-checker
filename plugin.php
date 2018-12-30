@@ -61,7 +61,7 @@ class PluginBrokenLinksChecker extends Plugin
             $html .='
                     <tr id="link-'.$key.'">
                         <td><span class="status"><span class="oi oi-arrow-circle-right text-info"></span></span></td>
-                        <td>
+                        <td style="white-space: nowrap;">
                         <a class="btn btn-outline-secondary btn-sm mb-1" href="'.HTML_PATH_ADMIN_ROOT.'edit-content/'.$link['src'].'" target="_blank"><span class="oi oi-pencil"></span></a>
                         <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="'.$link['href'].'" target="_blank"><span class="oi oi-eye"></span></a>
                         </td>
