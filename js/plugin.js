@@ -47,6 +47,7 @@ $(function () {
 
         function updateRow(data)
         {
+            var redirectIcon = '<span class="oi oi-circle-x text-warning"></span>';
             var passIcon = '<span class="oi oi-circle-check text-success"></span>';
             var failIcon = '<span class="oi oi-circle-x text-danger"></span>';
             if (data.error) {
@@ -57,9 +58,12 @@ $(function () {
                 var httpCode = (data.result.code === undefined) ? 'BAD REQ' : data.result.code;
             }
             $row = $('#'+data.trId);
+            var isRedirect = ((httpCode >= 300) && (httpCode <= 310)) ? true : false;
             $row.find("td:eq(2)").html(httpCode);
 
-            if (isUp) {
+            if (isRedirect) {
+                $row.find("td:eq(0)").html(redirectIcon);
+            } else if (isUp) {
                 $row.find("td:eq(0)").html(passIcon);
             } else {
                 $row.find("td:eq(0)").html(failIcon);
