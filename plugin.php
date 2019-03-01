@@ -74,7 +74,12 @@ class PluginBrokenLinksChecker extends Plugin
         </table>';
 
         $html .= $this->includeJS('sortTable.js');
-        $html .= '<script>const DOMAIN_BASE = "'.DOMAIN_BASE.'";</script>';
+        // Define Javascript variable DOMAIN_BASE if it does not exist.
+        $html .= '<script>
+            if (typeof DOMAIN_BASE === "undefined") {
+              var DOMAIN_BASE = "'.DOMAIN_BASE.'";
+            }
+            </script>';
         $html .= $this->includeJS('plugin.js');
 
         return $html;
@@ -124,7 +129,7 @@ class PluginBrokenLinksChecker extends Plugin
          * Get All Pages
          */
         global $pages;
-        $list = $pages->getList($pageNumber = 1, $numberOfItems = -1, $onlyPublished = false);
+        $list = $pages->getDB();
 
         /**
          * Get Ignored Domains
