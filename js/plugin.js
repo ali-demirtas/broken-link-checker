@@ -2,6 +2,8 @@
 $(function () {
     $("#checkLinksButton").click(function () {
 
+        var checkLinksButtonLabel = $("#checkLinksButton").html();
+
         $("#checkLinksButton").prop("disabled", true);
         $("#checkLinksButton").html("Loading...");
 
@@ -17,7 +19,7 @@ $(function () {
             var params = "q=" + encodeURIComponent(link) + "&trId=" + $rowId;
 
             // In Progress
-            $row.find("td:eq(0)").html('<span class="oi oi-loop-circular text-info"></span>');
+            $row.find("td:eq(0)").html('<span class="spinner-border spinner-border-sm"></span>');
 
             $.ajax({
                 type: "get",
@@ -47,9 +49,9 @@ $(function () {
 
         function updateRow(data)
         {
-            var redirectIcon = '<span class="oi oi-circle-x text-warning"></span>';
-            var passIcon = '<span class="oi oi-circle-check text-success"></span>';
-            var failIcon = '<span class="oi oi-circle-x text-danger"></span>';
+            var redirectIcon = '<span class="fa fa-rotate-right text-warning"></span>';
+            var passIcon = '<span class="fa fa-check-circle text-success"></span>';
+            var failIcon = '<span class="fa fa-times-circle text-danger"></span>';
             if (data.error) {
                 var isUp = false;
                 var httpCode = 'BAD REQ';
@@ -78,7 +80,7 @@ $(function () {
 
             // Rollback to default layout
             $("#checkLinksButton").removeAttr("disabled");
-            $("#checkLinksButton").html("Check All Links");
+            $("#checkLinksButton").html(checkLinksButtonLabel);
 
         });
     });

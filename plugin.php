@@ -44,7 +44,7 @@ class PluginBrokenLinksChecker extends Plugin
         $json = file_get_contents($this->cacheFile());
         $this->links = json_decode($json, true);
 
-        $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links</button>
+        $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links ('.number_format(count($this->links)).')</button>
         <div id="resultsPlaceholder"></div>';
 
         $html .= '
@@ -60,10 +60,10 @@ class PluginBrokenLinksChecker extends Plugin
         foreach ($this->links as $key => $link) {
             $html .='
                     <tr id="link-'.$key.'">
-                        <td><span class="status"><span class="oi oi-arrow-circle-right text-info"></span></span></td>
+                        <td><span class="status"><span class="fa fa-arrow-circle-o-right text-info"></span></span></td>
                         <td style="white-space: nowrap;">
-                        <a class="btn btn-outline-secondary btn-sm mb-1" href="'.HTML_PATH_ADMIN_ROOT.'edit-content/'.$link['src'].'" target="_blank"><span class="oi oi-pencil"></span></a>
-                        <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="'.$link['href'].'" target="_blank"><span class="oi oi-eye"></span></a>
+                        <a class="btn btn-outline-secondary btn-sm mb-1" href="'.HTML_PATH_ADMIN_ROOT.'edit-content/'.$link['src'].'" target="_blank"><span class="fa fa-edit"></span></a>
+                        <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="'.$link['href'].'" target="_blank"><span class="fa fa-eye"></span></a>
                         </td>
                         <td></td>
                         <td>'.$link['href'].'</td>
