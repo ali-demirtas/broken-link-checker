@@ -39,7 +39,7 @@ class PluginBrokenLinksChecker extends Plugin
         /**
          * Auth Token
          */
-        $apiRequestUrlExample = DOMAIN_BASE."broken-link-checker?q=https://google.com&token={$this->getValue('token')}&trId=link-1";
+        $apiRequestUrlExample = DOMAIN_BASE."broken-link-checker?q=https://www.google.com&token={$this->getValue('token')}&trId=link-1";
 
         $html .= <<<HTML
 <div class="alert alert-info">
