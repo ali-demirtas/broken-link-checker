@@ -4,6 +4,5 @@
         "name": "Broken Link Checker",
         "description": "Scan your website and fix broken links and images"
     },
-    "ignored-domains": "Ignored Domains (Separated by new lines)",
-    "require-authentication": "Require Authentication (Enabling this will throttle to 1 check/second due to session)"
+    "ignored-domains": "Ignored Domains (Separated by new lines)"
 }

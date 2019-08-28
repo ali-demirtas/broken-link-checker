@@ -2,6 +2,11 @@
 $(function () {
     $("#checkLinksButton").click(function () {
 
+        if (typeof BLC_AUTH_TOKEN === 'undefined') {
+            alert("Auth Token Unavailable");
+            return;
+        }
+
         var checkLinksButtonLabel = $("#checkLinksButton").html();
 
         $("#checkLinksButton").prop("disabled", true);
@@ -16,7 +21,7 @@ $(function () {
             $row = $('#'+$rowId);
 
             var link = $row.find("td:eq(3)").text();
-            var params = "q=" + encodeURIComponent(link) + "&trId=" + $rowId;
+            var params = "q=" + encodeURIComponent(link) + "&trId=" + $rowId + "&token=" + encodeURIComponent(BLC_AUTH_TOKEN);
 
             // In Progress
             $row.find("td:eq(0)").html('<span class="spinner-border spinner-border-sm"></span>');

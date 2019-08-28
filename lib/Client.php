@@ -5,7 +5,7 @@ namespace BrokenLinkChecker;
 class Client
 {
 
-    const USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:67.0) Gecko/20100101 Firefox/67.0';
+    const USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0';
 
     public static function getHeaders(string $url) : array
     {

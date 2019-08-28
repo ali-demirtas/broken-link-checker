@@ -12,9 +12,12 @@ class PluginBrokenLinksChecker extends Plugin
     {
         require_once __DIR__ . '/init.php';
 
+        // Generate API Token
+        $token = md5(uniqid().time().DOMAIN);
+
         $this->dbFields = [
-            'ignoredDomains' => '',
-            'requireAuthentication' => false
+            'token' => $token,
+            'ignoredDomains' => ''
         ];
     }
 
@@ -29,20 +32,25 @@ class PluginBrokenLinksChecker extends Plugin
 
         $html = '';
 
-        $html  = '<div class="alert alert-primary" role="alert">';
+        $html .= '<div class="alert alert-primary" role="alert">';
         $html .= $this->description();
         $html .= '</div>';
 
         /**
-         * Require Authentication
+         * Auth Token
          */
-        $html  = '<div>';
-        $html .= '<label>' . $L->get('require-authentication') . '</label>';
-        $html .= '<select name="requireAuthentication">';
-        $html .= '<option value="true" ' . ($this->getValue('requireAuthentication') === true ? 'selected' : '') . '>Enabled</option>';
-        $html .= '<option value="false" ' . ($this->getValue('requireAuthentication') === false ? 'selected' : '') . '>Disabled</option>';
-        $html .= '</select>';
-        $html .= '</div>';
+        $apiRequestUrlExample = DOMAIN_BASE."broken-link-checker?q=https://google.com&token={$this->getValue('token')}&trId=link-1";
+
+        $html .= <<<HTML
+<div class="alert alert-info">
+    <details>
+        <summary>Token: {$this->getValue('token')}</summary>
+<pre class="my-3">
+curl "$apiRequestUrlExample"
+</pre>
+    </details>
+</div>
+HTML;
 
         /**
          * Ignored Domains
@@ -87,10 +95,12 @@ class PluginBrokenLinksChecker extends Plugin
 
         $html .= $this->includeJS('sortTable.js');
         // Define Javascript variable DOMAIN_BASE if it does not exist.
+        // Set BLC_AUTH_TOKEN in frontend
         $html .= '<script>
             if (typeof DOMAIN_BASE === "undefined") {
               var DOMAIN_BASE = "'.DOMAIN_BASE.'";
             }
+            var BLC_AUTH_TOKEN = "'.$this->getValue('token').'";
             </script>';
         $html .= $this->includeJS('plugin.js');
 
@@ -181,11 +191,12 @@ class PluginBrokenLinksChecker extends Plugin
     {
         $webhook = 'broken-link-checker';
         if ($this->webhook($webhook)) {
-            if ($this->getValue('requireAuthentication') === true) {
-                $login = new Login();
-                if (! $login->isLogged()) {
-                    $this->sendResponse(['error' => 'Unauthorized'], 401);
-                }
+
+            /**
+             * Only allow authorised users
+             */
+            if (empty($_GET['token']) || $_GET['token'] !== $this->getValue('token')) {
+                $this->sendResponse(['error' => 'Unauthorized'], 401);
             }
 
             $query = isset($_GET['q']) ? $_GET['q'] : '';
