@@ -2,9 +2,9 @@
     "author": "anaggh",
     "email": "",
     "website": "https://github.com/anaggh/broken-link-checker",
-    "version": "0.8",
-    "releaseDate": "2019-08-28",
+    "version": "0.9",
+    "releaseDate": "2019-11-07",
     "license": "MIT",
-    "compatible": "3.9",
+    "compatible": "3.10",
     "notes": ""
 }

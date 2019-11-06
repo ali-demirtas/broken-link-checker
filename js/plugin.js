@@ -9,6 +9,12 @@ $(function () {
 
         var checkLinksButtonLabel = $("#checkLinksButton").html();
 
+        // Create an AJAX Manager queue with max concurrency 10 requests
+        var ajaxManager = $.manageAjax.create('ajaxManagerQueue', {
+            queue: true,
+            maxRequests: 10
+        });
+
         $("#checkLinksButton").prop("disabled", true);
         $("#checkLinksButton").html("Loading...");
 
@@ -18,7 +24,7 @@ $(function () {
         $("#allLinksTable tbody tr").each(function () {
 
             $rowId = $(this).attr('id');
-            $row = $('#'+$rowId);
+            $row = $('#' + $rowId);
 
             var link = $row.find("td:eq(3)").text();
             var params = "q=" + encodeURIComponent(link) + "&trId=" + $rowId + "&token=" + encodeURIComponent(BLC_AUTH_TOKEN);
@@ -26,9 +32,10 @@ $(function () {
             // In Progress
             $row.find("td:eq(0)").html('<span class="spinner-border spinner-border-sm"></span>');
 
-            $.ajax({
+            // $.ajax({
+            ajaxManager.add({
                 type: "get",
-                url: DOMAIN_BASE+'broken-link-checker',
+                url: DOMAIN_BASE + 'broken-link-checker',
                 data: params,
                 success: function (data) {
                     if (data.result.isUp) {
@@ -64,7 +71,7 @@ $(function () {
                 var isUp = (data.result.isUp === undefined) ? false : data.result.isUp;
                 var httpCode = (data.result.code === undefined) ? 'BAD REQ' : data.result.code;
             }
-            $row = $('#'+data.trId);
+            $row = $('#' + data.trId);
             var isRedirect = ((httpCode >= 300) && (httpCode <= 310)) ? true : false;
             $row.find("td:eq(2)").html(httpCode);
 
@@ -80,13 +87,11 @@ $(function () {
         // Runs when all Ajax requests are complete
         $(document).ajaxStop(function () {
 
-            // Sort the table DESC status
-            sortTable("allLinksTable");
+            // TODO: Have to sort table here or call functions that hide 2XX and 3XX
 
             // Rollback to default layout
             $("#checkLinksButton").removeAttr("disabled");
             $("#checkLinksButton").html(checkLinksButtonLabel);
-
         });
     });
 

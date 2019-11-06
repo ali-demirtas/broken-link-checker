@@ -13,7 +13,7 @@ class PluginBrokenLinksChecker extends Plugin
         require_once __DIR__ . '/init.php';
 
         // Generate API Token
-        $token = md5(uniqid().time().DOMAIN);
+        $token = md5(uniqid() . time() . DOMAIN);
 
         $this->dbFields = [
             'token' => $token,
@@ -23,7 +23,7 @@ class PluginBrokenLinksChecker extends Plugin
 
     public function adminSidebar()
     {
-        return '<a class="nav-link" href="'.HTML_PATH_ADMIN_ROOT.'configure-plugin/'.$this->className().'">Broken Links</a>';
+        return '<a class="nav-link" href="' . HTML_PATH_ADMIN_ROOT . 'configure-plugin/' . $this->className() . '">Broken Links</a>';
     }
 
     public function form()
@@ -39,10 +39,12 @@ class PluginBrokenLinksChecker extends Plugin
         /**
          * Auth Token
          */
-        $apiRequestUrlExample = DOMAIN_BASE."broken-link-checker?q=https://www.google.com&token={$this->getValue('token')}&trId=link-1";
+        $apiRequestUrlExample = DOMAIN_BASE . "broken-link-checker?q=https://www.google.com&token={$this->getValue('token')}&trId=link-1";
+        $curlVersion = curl_version()['version'] . ' (' . curl_version()['ssl_version'] . ')';
 
         $html .= <<<HTML
 <div class="alert alert-info">
+Curl: $curlVersion
     <details>
         <summary>Token: {$this->getValue('token')}</summary>
 <pre class="my-3">
@@ -56,15 +58,15 @@ HTML;
          * Ignored Domains
          */
         $html .= '<div class="mb-3">';
-        $html .= '<label>'.$L->get('ignored-domains').'</label>';
-        $html .= '<textarea name="ignoredDomains" id="jstext">'.$this->getValue('ignoredDomains').'</textarea>';
+        $html .= '<label>' . $L->get('ignored-domains') . '</label>';
+        $html .= '<textarea name="ignoredDomains" id="jstext">' . $this->getValue('ignoredDomains') . '</textarea>';
         $html .= '</div>';
 
         // Read the cache file
         $json = file_get_contents($this->cacheFile());
         $this->links = json_decode($json, true);
 
-        $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links ('.number_format(count($this->links)).')</button>
+        $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links (' . number_format(count($this->links)) . ')</button>
         <div id="resultsPlaceholder"></div>';
 
         $html .= '
@@ -78,30 +80,30 @@ HTML;
 
             <tbody>';
         foreach ($this->links as $key => $link) {
-            $html .='
-                    <tr id="link-'.$key.'">
+            $html .= '
+                    <tr id="link-' . $key . '">
                         <td><span class="status"><span class="fa fa-arrow-circle-o-right text-info"></span></span></td>
                         <td style="white-space: nowrap;">
-                        <a class="btn btn-outline-secondary btn-sm mb-1" href="'.HTML_PATH_ADMIN_ROOT.'edit-content/'.$link['src'].'" target="_blank"><span class="fa fa-edit"></span></a>
-                        <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="'.$link['href'].'" target="_blank"><span class="fa fa-eye"></span></a>
+                        <a class="btn btn-outline-secondary btn-sm mb-1" href="' . HTML_PATH_ADMIN_ROOT . 'edit-content/' . $link['src'] . '" target="_blank"><span class="fa fa-edit"></span></a>
+                        <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="' . $link['href'] . '" target="_blank"><span class="fa fa-eye"></span></a>
                         </td>
                         <td></td>
-                        <td>'.$link['href'].'</td>
+                        <td>' . $link['href'] . '</td>
                     </tr>';
         }
         $html .= '
             </tbody>
         </table>';
 
-        $html .= $this->includeJS('sortTable.js');
         // Define Javascript variable DOMAIN_BASE if it does not exist.
         // Set BLC_AUTH_TOKEN in frontend
         $html .= '<script>
             if (typeof DOMAIN_BASE === "undefined") {
-              var DOMAIN_BASE = "'.DOMAIN_BASE.'";
+              var DOMAIN_BASE = "' . DOMAIN_BASE . '";
             }
-            var BLC_AUTH_TOKEN = "'.$this->getValue('token').'";
+            var BLC_AUTH_TOKEN = "' . $this->getValue('token') . '";
             </script>';
+        $html .= $this->includeJS('jquery.ajaxmanager.js');
         $html .= $this->includeJS('plugin.js');
 
         return $html;
@@ -138,7 +140,7 @@ HTML;
     // Returns the absolute path of the cache file
     private function cacheFile()
     {
-        return $this->workspace().'cache.json';
+        return $this->workspace() . 'cache.json';
     }
 
     /**
@@ -226,7 +228,7 @@ HTML;
         exit(0);
     }
 
-    protected function checkIfIgnored(array $ignoredDomains, string $url) : bool
+    protected function checkIfIgnored(array $ignoredDomains, string $url): bool
     {
         foreach ($ignoredDomains as $domain) {
             $domain = trim($domain);

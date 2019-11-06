@@ -5,7 +5,7 @@ namespace BrokenLinkChecker;
 class Parser
 {
 
-    public static function getLinks(string $html) : array
+    public static function getLinks(string $html): array
     {
 
         $links = [];
