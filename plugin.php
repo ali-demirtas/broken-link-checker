@@ -34,7 +34,6 @@ class PluginBrokenLinksChecker extends Plugin
 
         $html .= '<div class="alert alert-primary" role="alert">';
         $html .= $this->description();
-        $html .= '</div>';
 
         /**
          * Auth Token
@@ -43,16 +42,17 @@ class PluginBrokenLinksChecker extends Plugin
         $curlVersion = curl_version()['version'] . ' (' . curl_version()['ssl_version'] . ')';
 
         $html .= <<<HTML
-<div class="alert alert-info">
-Curl: $curlVersion
+<p>
     <details>
         <summary>Token: {$this->getValue('token')}</summary>
 <pre class="my-3">
 curl "$apiRequestUrlExample"
 </pre>
     </details>
-</div>
+</p>
+Curl: $curlVersion
 HTML;
+        $html .= '</div>';
 
         /**
          * Ignored Domains
@@ -66,34 +66,38 @@ HTML;
         $json = file_get_contents($this->cacheFile());
         $this->links = json_decode($json, true);
 
-        $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check All Links (' . number_format(count($this->links)) . ')</button>
-        <div id="resultsPlaceholder"></div>';
+        if (!empty($this->links)) {
+            $html .= '<button type="button" class="btn btn-outline-dark mb-2" id="checkLinksButton">Check Links (' . number_format(count($this->links)) . ')</button>
+            <div id="resultsPlaceholder"></div>';
 
-        $html .= '
-        <table class="table table-bordered table-sm table-hover" id="allLinksTable">
-            <thead>
-                <th>Status</th>
-                <th>Action</th>
-                <th>Code</th>
-                <th>Link</th>
-            </thead>
-
-            <tbody>';
-        foreach ($this->links as $key => $link) {
             $html .= '
-                    <tr id="link-' . $key . '">
-                        <td><span class="status"><span class="fa fa-arrow-circle-o-right text-info"></span></span></td>
-                        <td style="white-space: nowrap;">
-                        <a class="btn btn-outline-secondary btn-sm mb-1" href="' . HTML_PATH_ADMIN_ROOT . 'edit-content/' . $link['src'] . '" target="_blank"><span class="fa fa-edit"></span></a>
-                        <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="' . $link['href'] . '" target="_blank"><span class="fa fa-eye"></span></a>
-                        </td>
-                        <td></td>
-                        <td>' . $link['href'] . '</td>
-                    </tr>';
+            <table class="table table-bordered table-sm table-hover" id="allLinksTable">
+                <thead>
+                    <th>Status</th>
+                    <th>Code</th>
+                    <th>Action</th>
+                    <th>Link</th>
+                </thead>
+
+                <tbody>';
+            foreach ($this->links as $key => $link) {
+                $html .= '
+                        <tr id="link-' . $key . '">
+                            <td><span class="status"><span class="fa fa-arrow-circle-o-right text-info"></span></span></td>
+                            <td></td>
+                            <td style="white-space: nowrap;">
+                            <a class="btn btn-outline-secondary btn-sm mb-1" href="' . HTML_PATH_ADMIN_ROOT . 'edit-content/' . $link['src'] . '" target="_blank"><span class="fa fa-edit"></span></a>
+                            <a class="btn btn-outline-secondary btn-sm mb-1" rel="noreferrer" href="' . $link['href'] . '" target="_blank"><span class="fa fa-eye"></span></a>
+                            </td>
+                            <td>' . $link['href'] . '</td>
+                        </tr>';
+            }
+            $html .= '
+                </tbody>
+            </table>';
+        } else {
+            $html .= '<div class="alert alert-success">No links found.</div>';
         }
-        $html .= '
-            </tbody>
-        </table>';
 
         // Define Javascript variable DOMAIN_BASE if it does not exist.
         // Set BLC_AUTH_TOKEN in frontend
@@ -167,9 +171,18 @@ HTML;
             $page = buildPage($pageKey);
             $content = $page->content();
 
+            // Get Cover Images
+            if ($page->coverImage() && Valid::url($page->coverImage())) {
+                if (!$this->checkIfIgnored($ignoredDomains, $page->coverImage())) {
+                    $this->links[] = [
+                        'src' => $pageKey,
+                        'href' => $page->coverImage()
+                    ];
+                }
+            }
+
             // Get links
             $pageLinks = Parser::getLinks($content);
-
             foreach ($pageLinks as $link) {
                 if (!$this->checkIfIgnored($ignoredDomains, $link)) {
                     $this->links[] = [
@@ -179,6 +192,7 @@ HTML;
                 }
             }
         }
+
 
         // Generate JSON file with the cache
         $json = json_encode($this->links);
@@ -207,7 +221,7 @@ HTML;
                 $response = [
                     'query' => $query,
                     'trId' => $trId,
-                    'result' => Client::getHeaders($query)
+                    'result' => Client::getLinkStatus($query)
                 ];
                 $this->sendResponse($response);
             } else {

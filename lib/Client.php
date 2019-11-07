@@ -7,27 +7,31 @@ class Client
 
     const USER_AGENT = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 
-    public static function getHeaders(string $url): array
+    public static function getLinkStatus(string $url): array
     {
         // Attempt a HEAD request
-        $response = self::request($url, 'HEAD');
+        $httpCode = self::getHttpCode($url, 'HEAD');
         /**
          * When HTTP 405 Method Not Allowed (HEAD), Fallback to a GET request.
          * Example: https://www.amazon.in
          */
-        if ($response['code'] === 405) {
-            return self::request($url, 'GET');
+        if ($httpCode === 405) {
+            $httpCode = self::getHttpCode($url, 'GET');
         }
-        return $response;
+        return [
+            'url' => $url,
+            'code' => $httpCode,
+            'linkStatus' => self::convertHttpCodeToStatus($httpCode)
+        ];
     }
 
     /**
-     * [request Make HTTP Request]
+     * [getHttpCode Make HTTP Request]
      * @param  string $url    [url]
      * @param  string $method [HTTP Method (HEAD/GET)]
-     * @return [array]         [result]
+     * @return [int]         [httpCode]
      */
-    protected static function request(string $url, $method = 'HEAD'): array
+    protected static function getHttpCode(string $url, $method = 'HEAD'): int
     {
         $ch = curl_init($url);
         // Spoof User Agent
@@ -43,17 +47,19 @@ class Client
         }
 
         $output = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        return [
-            'code' => $httpcode,
-            'isUp' => self::isUp($httpcode)
-        ];
+        return (int)$httpCode;
     }
 
-    protected static function isUp($httpcode): bool
+    protected static function convertHttpCodeToStatus(int $httpCode): string
     {
-        $httpcode = (int)$httpcode;
-        return (($httpcode >= 200) && ($httpcode <= 299)) ? true : false;
+        if (($httpCode >= 200) && ($httpCode <= 299)) {
+            return 'Success';
+        } elseif (($httpCode >= 300) && ($httpCode <= 310)) {
+            return 'Redirect';
+        } else {
+            return 'Error';
+        }
     }
 }

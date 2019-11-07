@@ -1,6 +1,13 @@
 // DOM Ready
 $(function () {
+
     $("#checkLinksButton").click(function () {
+
+        var blcLinkStats = {
+            Success : 0,
+            Redirect: 0,
+            Error: 0
+        };
 
         if (typeof BLC_AUTH_TOKEN === 'undefined') {
             alert("Auth Token Unavailable");
@@ -8,6 +15,9 @@ $(function () {
         }
 
         var checkLinksButtonLabel = $("#checkLinksButton").html();
+        // Disable the form while scan is running
+        $("#checkLinksButton").prop("disabled", true);
+        $("#checkLinksButton").html("Loading...");
 
         // Create an AJAX Manager queue with max concurrency 10 requests
         var ajaxManager = $.manageAjax.create('ajaxManagerQueue', {
@@ -15,12 +25,7 @@ $(function () {
             maxRequests: 10
         });
 
-        $("#checkLinksButton").prop("disabled", true);
-        $("#checkLinksButton").html("Loading...");
-
-        var successCount = 0;
-        var failedCount = 0;
-
+        // Iterate through each link in the table and get status
         $("#allLinksTable tbody tr").each(function () {
 
             $rowId = $(this).attr('id');
@@ -38,56 +43,64 @@ $(function () {
                 url: DOMAIN_BASE + 'broken-link-checker',
                 data: params,
                 success: function (data) {
-                    if (data.result.isUp) {
-                        // Success
-                        successCount++;
-                        updateRow(data);
-                        refreshStats(successCount, failedCount);
-                    } else {
-                        // Fail
-                        failedCount++;
-                        updateRow(data);
-                        refreshStats(successCount, failedCount);
-                    }
+                    blcLinkStats[data.result.linkStatus]++;
+                    updateRow(data);
+                    updateStats(blcLinkStats);
                 },
                 error: function (data) {
-                    // Fail
-                    failedCount++;
-                    updateRow(JSON.parse(data.responseText));
-                    refreshStats(successCount, failedCount);
+                    console.log("API Failure:" + data);
                 }
             });
         });
 
         function updateRow(data)
         {
-            var redirectIcon = '<span class="fa fa-rotate-right text-warning"></span>';
-            var passIcon = '<span class="fa fa-check-circle text-success"></span>';
-            var failIcon = '<span class="fa fa-times-circle text-danger"></span>';
-            if (data.error) {
-                var isUp = false;
-                var httpCode = 'BAD REQ';
-            } else {
-                var isUp = (data.result.isUp === undefined) ? false : data.result.isUp;
-                var httpCode = (data.result.code === undefined) ? 'BAD REQ' : data.result.code;
-            }
-            $row = $('#' + data.trId);
-            var isRedirect = ((httpCode >= 300) && (httpCode <= 310)) ? true : false;
-            $row.find("td:eq(2)").html(httpCode);
+            var successIcon = '<span class="fa fa-check-circle text-success BLCSuccess"></span>';
+            var redirectIcon = '<span class="fa fa-rotate-right text-warning BLCRedirect"></span>';
+            var errorIcon = '<span class="fa fa-times-circle text-danger BLCError"></span>';
 
-            if (isRedirect) {
-                $row.find("td:eq(0)").html(redirectIcon);
-            } else if (isUp) {
-                $row.find("td:eq(0)").html(passIcon);
-            } else {
-                $row.find("td:eq(0)").html(failIcon);
+            $row = $('#' + data.trId);
+            $row.find("td:eq(1)").html(data.result.code);
+
+            switch (data.result.linkStatus) {
+                case "Success":
+                    $row.find("td:eq(0)").html(successIcon);
+                break;
+                case "Redirect":
+                    $row.find("td:eq(0)").html(redirectIcon);
+                break;
+                case "Error":
+                    $row.find("td:eq(0)").html(errorIcon);
+                break;
             }
+        }
+
+        function updateStats(blcLinkStats)
+        {
+
+            $("#resultsPlaceholder").html('<div class="alert alert-light border-dark mt-2">\
+            <div class="custom-control custom-switch">\
+              <input type="checkbox" class="custom-control-input" id="toggleSuccess" disabled checked>\
+              <label class="custom-control-label" for="toggleSuccess"><span class="text-success">Success: ' + blcLinkStats.Success + '</span></label>\
+            </div>\
+            <div class="custom-control custom-switch">\
+              <input type="checkbox" class="custom-control-input" id="toggleRedirect" disabled checked>\
+              <label class="custom-control-label" for="toggleRedirect"><span class="text-warning">Redirect: ' + blcLinkStats.Redirect + '</span></label>\
+            </div>\
+            <div class="custom-control custom-switch">\
+              <input type="checkbox" class="custom-control-input" id="toggleError" disabled checked>\
+              <label class="custom-control-label" for="toggleError"><span class="text-danger">Error: ' + blcLinkStats.Error + '</span></label>\
+            </div>\
+            </div>');
         }
 
         // Runs when all Ajax requests are complete
         $(document).ajaxStop(function () {
 
-            // TODO: Have to sort table here or call functions that hide 2XX and 3XX
+            // Let User toggle the results
+            $("#toggleSuccess").removeAttr("disabled");
+            $("#toggleRedirect").removeAttr("disabled");
+            $("#toggleError").removeAttr("disabled");
 
             // Rollback to default layout
             $("#checkLinksButton").removeAttr("disabled");
@@ -95,12 +108,14 @@ $(function () {
         });
     });
 
-    function refreshStats(successCount, failedCount)
-    {
-        $("#resultsPlaceholder").html('<div class="alert alert-secondary mt-3">\
-        Success: ' + successCount + '<br>\
-        <span class="text-danger">Failed: ' + failedCount + '</span>\
-        </div>');
-    }
+    // Event to Show/Hide Results
+    $(document).on('click', '#toggleSuccess,#toggleRedirect,#toggleError', function () {
+        var resultClass = '.BLC' + this.id.replace('toggle', '');
+        if (this.checked) {
+            $(resultClass).parent().parent().show();
+        } else {
+            $(resultClass).parent().parent().hide();
+        }
+    });
 
 });
