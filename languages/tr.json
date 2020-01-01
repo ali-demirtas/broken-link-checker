@@ -1,0 +1,8 @@
+{
+    "plugin-data":
+    {
+        "name": "Bozuk Bağlantı Denetleyicisi",
+        "description": "Web sitenizi tarayın ve bozuk bağlantıları ve resimleri düzeltin"
+    },
+    "ignored-domains": "Yok Sayılan Etki Alanları (Yeni satırlarla ayrılır)"
+}
